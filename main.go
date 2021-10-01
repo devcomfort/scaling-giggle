@@ -23,9 +23,9 @@ func main() {
 	})
 
 	/* 설명서 */
-	router.GET("/explanation", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "description.html", nil)
-	})
+	// router.GET("/explanation", func(c *gin.Context) {
+	// 	c.HTML(http.StatusOK, "description.html", nil)
+	// })
 
 	router.Run(":" + port)
 }
