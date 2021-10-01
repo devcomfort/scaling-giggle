@@ -1,0 +1,413 @@
+<html lang="kr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>강의 다운로더 Online</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400&display=swap');
+
+        body {
+            font-size: 1.3em;
+            font-family: "Noto Sans KR", sans-serif;
+            text-align: center;
+            margin: 0;
+        }
+
+        header {
+            margin-bottom: 2em;
+        }
+
+        section {
+            margin-top: 2em;
+            margin-bottom: 2em;
+        }
+
+        section textarea {
+            font-size: 1em;
+            font-family: "Noto Sans KR", sans-serif;
+            text-align: center;
+        }
+
+        section input[type='submit'] {
+            margin-top: 0.6em;
+            padding: 0.6em;
+            font-size: 0.85em;
+            font-family: "Noto Sans KR", sans-serif;
+            text-align: center;
+        }
+
+        footer {
+            margin-top: 2em;
+            margin-bottom: 1em;
+            font-size: 0.7em;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h3>강의 다운로더 Online</h3>
+    </header>
+    <section>
+        <form action="#" method="POST">
+            <label for="URL">아래에 URL을 입력해주세요. </label><br>
+            <!-- <input type="url" name="URL" /> -->
+            <textarea name="url" class="url" cols="70" rows="10"
+                placeholder="여러개를 한번에 받고싶다면, Enter로 구분하여 입력해주세요"></textarea>
+            <textarea cols="70" rows="10" class="hidden load" disabled></textarea><br>
+            <input type="submit" value="다운로드">
+        </form>
+
+        <h3>설명</h3>
+
+        <span>
+            위에 영상 링크를 입력하면 자동으로 다운로드 됩니다.<br><br>
+            <b>;</b>을 사용해 파일명을 별도로 <u>지정</u>할 수 있습니다.<br>
+            (예시: https://abc.com/video/1/2/3/video.mp4;간호용어1.mp4)<br><br>
+            인식 불가한 구조의 URL을 입력한 경우, 인식 가능한 URL만 다운로드가 실행되며<br>
+            인식 불가한 URL만 입력칸에 남게 됩니다. <br><br>
+            현재 다운로드 위치는 "다운로드" 폴더로 고정되어 있습니다. 참고해주세요✌
+        </span>
+    </section>
+    <footer>
+        대충 만든 싱글 페이지 어플리케이션입니다만<br>
+        잘 사용해주신다면 감사하겠습니다 :)
+    </footer>
+
+    <!-- 다운로드 라이브러리 -->
+    <script src="http://danml.com/js/download2.js"></script>
+
+    <!-- 디자인 -->
+    <script>
+        let IsHidden = (elem) => {
+                return elem.classList.value.includes("hidden");
+            },
+            IsDisplayed = (elem) => {
+                return !IsHidden(elem);
+            };
+
+        let ToHidden = (elem) => {
+                if (IsDisplayed(elem))
+                    elem.classList.value = `hidden ${elem.classList.value}`;
+            },
+            ToDisplay = (elem) => {
+                if (IsHidden(elem))
+                    elem.classList.value = elem.classList.value.replace("hidden", "").trim();
+            };
+
+        let LoadView = document.querySelector("textarea.load"),
+            InputView = document.querySelector("textarea.url");
+
+        /* 로딩 화면을 표시함 */
+        function ShowLoadView() {
+            if (sessionStorage.LOADVIEW_ID) return void 0;
+
+            ToDisplay(LoadView);
+            ToHidden(InputView);
+
+            sessionStorage.LOADVIEW_ID = window.setInterval(function () {
+                if (!sessionStorage.LOADVIEW_STAGE) {
+                    sessionStorage.LOADVIEW_STAGE = 0;
+                }
+
+                let TargetElement = document.querySelector(`textarea.load`);
+                let Dot = (n) => {
+                    let Data = "";
+                    while (n-- >= 0)
+                        Data += '.';
+                    return Data;
+                };
+
+                let Stage = window.parseInt(sessionStorage.LOADVIEW_STAGE);
+                let Cache = JSON.parse(sessionStorage.DOWNLOAD_CHANNEL);
+
+                TargetElement.innerHTML =
+                    `다운로드 중${Dot(Stage)}\n (${Cache.Total - Cache.Wait}/${Cache.Total})`;
+                sessionStorage.LOADVIEW_STAGE = (Stage + 1) % 3;
+            }, 350);
+        }
+
+        /* 로딩 화면을 가림 */
+        function HideLoadView() {
+            if (!sessionStorage.LOADVIEW_ID) return void 0;
+
+            ToDisplay(InputView);
+            ToHidden(LoadView);
+
+            window.clearInterval(sessionStorage.LOADVIEW_ID);
+            delete sessionStorage.LOADVIEW_ID;
+            delete sessionStorage.LOADVIEW_STAGE;
+        }
+
+        window.onload = () => {
+            HideLoadView();
+        };
+    </script>
+
+    <!-- 기능 -->
+    <script>
+        /* URL 여부를 검증하는 함수 */
+        let IdentifyURL = (url) => {
+            let regex = /(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
+            return regex.test(url);
+        };
+
+        function ExtractFileName(url) {
+            let FileName = url.split('/');
+            return FileName[FileName.length - 1];
+        }
+
+        let URLOptimizer = (Strings, Seperator) => {
+            let Response = {
+                Included: new Array,
+                Excluded: new Array
+            };
+
+            /* dcms.dongseo.ac.kr 적용 */
+            let ChangeURL = (MyURL) => {
+                MyURL.hostname = "dcms.dongseo.ac.kr";
+                return MyURL.href;
+            };
+
+            Strings = Strings.split(Seperator);
+
+            Strings.forEach(item => {
+                item = item.trim();
+
+                /* 공백 문자 자동 누락 */
+                if (item === "") return;
+
+                switch (item.split(';').length) {
+                    case 1:
+                        /* 일반 입력 감지 */
+                        if (IdentifyURL(item))
+                            Response.Included.push({
+                                OriginalText: item,
+                                URL: ChangeURL(new URL(item)),
+                                FileName: ExtractFileName(item)
+                            });
+                        else
+                            Response.Excluded.push({
+                                OriginalText: item,
+                                URL: item,
+                                Reason: `유효하지 않은 URL 구조입니다.`
+                            });
+
+                        break;
+                    case 2:
+                        /* 커스텀 파일명 입력 감지 */
+                        let Token = item.split(';');
+                        let MyURL;
+                        let FileName;
+                        let MSG;
+
+                        Token.forEach((item, index) => {
+                            Token[index] = item.trim();
+                        });
+
+                        if (Token.length > 2) {
+                            MSG = `2개 이상의 ';'가 첨부되었습니다.`;
+                            console.warn(MSG);
+
+                            Excluded.push({
+                                OriginalText: item,
+                                URL: item,
+                                Reason: MSG
+                            })
+                            return;
+                        }
+
+                        FileName = Token[1];
+                        MyURL = Token[0];
+
+                        if (IdentifyURL(MyURL)) {
+                            Response.Included.push({
+                                OriginalText: MyURL,
+                                URL: ChangeURL(new URL(MyURL)),
+                                FileName: FileName
+                            });
+                        }
+
+                        break;
+                    default:
+                        Response.Excluded.push({
+                            OriginalText: item,
+                            URL: item,
+                            Reason: `';'가 과도하게 입력되었습니다.`
+                        });
+
+                        break;
+                }
+            });
+
+            return Response;
+        };
+
+        window.onsubmit = async function (e) {
+            /* Submit 방지 */
+            e.preventDefault();
+
+            let Data = document.querySelector(`textarea[name='url']`).value;
+
+            /** 단순 파일 다운로드 과정을 담고있는 함수
+             */
+            let Proceed = async () => {
+                await ShowLoadView();
+
+                let ParsedData = JSON.parse(sessionStorage.ParsedData);
+
+                sessionStorage.DOWNLOAD_CHANNEL = await JSON.stringify({
+                    Total: ParsedData.Included.length,
+                    Wait: ParsedData.Included.length,
+                    Done: 0,
+                    Failed: 0
+                });
+
+                for await (let item of ParsedData.Included) {
+                    /** Download 함수는 댜운로드 성공 시 true, 실패 시 false를 반환합니다.
+                     */
+                    let Token = await Download(item.URL, item.FileName);
+                    let Cache = JSON.parse(sessionStorage.DOWNLOAD_CHANNEL);
+
+                    if (!Token) {
+                        ParsedData.Excluded.push({
+                            OriginalText: item.OriginalText,
+                            URL: item.URL,
+                            Reason: `다운로드 실패 (유효하지 않거나 서버에 의해 차단된 URL입니다.)`
+                        });
+
+                        console.warn(`${item.URL} 다운로드 실패`);
+
+                        Cache.Failed++;
+                    } else {
+                        Cache.Done++;
+                    }
+
+                    Cache.Wait--;
+
+                    await delete sessionStorage.DOWNLOAD_CHANNEL;
+                    sessionStorage.DOWNLOAD_CHANNEL = await JSON.stringify(Cache);
+                }
+
+                /** 메모리 비우기
+                 *  DOWNLOAD_CHANNEL
+                 *  ParsedData의 (Download) Included 항목
+                 */
+                delete sessionStorage.DOWNLOAD_CHANNEL;
+                delete ParsedData.Included;
+
+                /* 새 배열 할당 */
+                ParsedData.Included = new Array;
+
+                /* 수정된 배열 저장 */
+                sessionStorage.ParsedData = ParsedData;
+
+                await HideLoadView();
+            };
+
+            /** 다운로드 종료 후, 결과를 반환하는 함수
+             *  인식되지 않은 URL만 모아 textarea에 다시 작성한다.
+             *  모두 인식된 경우 textarea에는 아무것도 남지 않는다.
+             */
+            let Arrange = async () => {
+                let ParsedData = JSON.parse(sessionStorage.ParsedData);
+
+                let Element = document.querySelector(`textarea[name='url']`)
+                let Return = new Array;
+
+                /** Excluded Data 목록의 각 요소에서 원본 URL을 뽑아 문자열로 반환하는 함수
+                 */
+                let Data = async (Parsed) => {
+                    let Return = new Array;
+
+                    for await (let token of Parsed.Excluded) {
+                        Return.push(token.OriginalText);
+                    }
+
+                    if (Return.length == 0)
+                        Promise.resolve("");
+
+                    return Promise.resolve(Return.toString().replace(/[,]/g, "\n"));
+                };
+
+                /** 파싱된 Excluded Data 목록을 넣으면, 출력용 문자열을 반환해주는 함수.
+                 */
+                let ToString = async (List) => {
+                    let Return = new Array;
+
+                    for await (let item of List) {
+                        Return.push(`- URL: ${item.OriginalText}, 사유: ${item.Reason}`);
+                    }
+
+                    return Promise.resolve(Return.toString().replace(/[,]/g, "\n"));
+                };
+
+                Element.value = await Data(ParsedData);
+
+                return Promise.resolve(await ToString(ParsedData.Excluded));
+            }
+
+            let Parsed = URLOptimizer(Data.trim(), '\n');
+            sessionStorage.ParsedData = JSON.stringify(Parsed);
+
+            /* 다운로드 */
+            await Proceed();
+
+            /* 정리 */
+            let StatusText = await Arrange();
+            let Cache = JSON.parse(sessionStorage.ParsedData);
+
+            /* 모든 과정이 끝난 후, 1개 이상의 누락 URL이 남은 경우 */
+            if (Cache.Excluded.length > 0) {
+                window.alert(
+                    `총 ${Cache.Excluded.length}개의 URL이 다음과 같은 사유로 인식이 불가하거나 다운로드에 실패했습니다.\n${StatusText}`);
+            }
+
+            return false;
+        }
+
+        async function Download(url, fname) {
+            let Response = await fetch(url, {
+                method: "GET"
+            });
+
+            if (!Response.ok) {
+                console.warn(`HTTP 요청 오류: 상태값: ${Response.status}`);
+                return Promise.resolve(false);
+            }
+
+            let FILE = await Response.blob();
+            if (FILE) {
+                download(FILE, fname);
+                return Promise.resolve(true);
+            }
+
+            return Promise.resolve(false);
+        }
+    </script>
+
+    <!-- 보안 -->
+    <script>
+        document.ondragstart = () => {
+            return false;
+        };
+
+        document.oncontextmenu = () => {
+            return false;
+        };
+
+        document.onselectstart = (e) => {
+            if (e.target == document.querySelector(`textarea.url`))
+                return true;
+            return false;
+        };
+    </script>
+</body>
+
+</html>
