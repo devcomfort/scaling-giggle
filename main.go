@@ -1,16 +1,20 @@
 package main
 
 import (
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/heroku/x/hmetrics/onload"
 )
 
 func main() {
-	const (
-		port string = "80"
-	)
+	port := os.Getenv("PORT")
+
+	if port == "" {
+		log.Fatal("$PORT must be set")
+	}
 
 	router := gin.New()
 	router.Use(gin.Logger())
@@ -22,7 +26,7 @@ func main() {
 		c.HTML(http.StatusOK, "index.html", nil)
 	})
 
-	/* 설명서1 */
+	/* 설명서 */
 	// router.GET("/explanation", func(c *gin.Context) {
 	// 	c.HTML(http.StatusOK, "description.html", nil)
 	// })
