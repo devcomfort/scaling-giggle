@@ -6,13 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>강의 다운로더 Online</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400&display=swap');
+        /* @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400&display=swap'); */
+        @import url('https://cdn.jsdelivr.net/gh/neodgm/neodgm-pro-webfont@1.011/neodgm_pro/style.css');
 
         body {
-            font-size: 1.3em;
-            font-family: "Noto Sans KR", sans-serif;
+            font-size: 32px;
+            font-family: "NeoDunggeunmo Pro", sans-serif;
             text-align: center;
             margin: 0;
+            padding: 16px;
+
+            background-color: black;
+            color: white;
         }
 
         header {
@@ -25,23 +30,36 @@
         }
 
         section textarea {
-            font-size: 1em;
-            font-family: "Noto Sans KR", sans-serif;
+            font-size: 16px;
+            font-family: "NeoDunggeunmo Pro", sans-serif;
             text-align: center;
+
+            background-color: #e0e0e0;
+            color: #757575;
+
+            /* 사이즈 조정 막기 */
+            resize: none;
         }
 
         section input[type='submit'] {
             margin-top: 0.6em;
             padding: 0.6em;
             font-size: 0.85em;
-            font-family: "Noto Sans KR", sans-serif;
+            font-family: "NeoDunggeunmo Pro", sans-serif;
             text-align: center;
+
+            border-radius: 12px;
+            border: none,
+                0 0 3px white;
+            background-color: black;
+
+            color: white;
         }
 
         footer {
             margin-top: 2em;
             margin-bottom: 1em;
-            font-size: 0.7em;
+            font-size: 16px;
         }
 
         .hidden {
@@ -56,28 +74,19 @@
     </header>
     <section>
         <form action="#" method="POST">
-            <label for="URL">아래에 URL을 입력해주세요. </label><br>
-            <!-- <input type="url" name="URL" /> -->
-            <textarea name="url" class="url" cols="70" rows="10"
-                placeholder="여러개를 한번에 받고싶다면, Enter로 구분하여 입력해주세요"></textarea>
+            <label for="URL">아래에 URL을 입력해주세요!</label><br>
+            <textarea name="url" class="url" cols="70" rows="20" placeholder="여러개를 한번에 받고싶다면, Enter로 구분하여 입력해주세요."
+                style="margin: 0.7em 0 0.2em 0;"></textarea>
             <textarea cols="70" rows="10" class="hidden load" disabled></textarea><br>
             <input type="submit" value="다운로드">
         </form>
 
-        <h3>설명</h3>
-
-        <span>
-            위에 영상 링크를 입력하면 자동으로 다운로드 됩니다.<br><br>
-            <b>;</b>을 사용해 파일명을 별도로 <u>지정</u>할 수 있습니다.<br>
-            (예시: https://abc.com/video/1/2/3/video.mp4;간호용어1.mp4)<br><br>
-            인식 불가한 구조의 URL을 입력한 경우, 인식 가능한 URL만 다운로드가 실행되며<br>
-            인식 불가한 URL만 입력칸에 남게 됩니다. <br><br>
-            현재 다운로드 위치는 "다운로드" 폴더로 고정되어 있습니다. 참고해주세요✌
-        </span>
     </section>
     <footer>
-        대충 만든 싱글 페이지 어플리케이션입니다만<br>
-        잘 사용해주신다면 감사하겠습니다 :)
+        대충 만든 페이지만, 잘 사용해주신다면 감사하겠습니다 :)<br>
+        <p>
+            <a href="https://agile-mountain-79092.herokuapp.com/explanation" target="_blank">설명서 바로가기</a>
+        </p>
     </footer>
 
     <!-- 다운로드 라이브러리 -->
@@ -390,6 +399,16 @@
 
             return Promise.resolve(false);
         }
+    </script>
+
+    <!-- 알람 -->
+    <script>
+        // window.addEventListener('load', () => {
+        //     /* 알람 권한 요청 */
+        //     Notification.requestPermission();
+
+
+        // });
     </script>
 
     <!-- 보안 -->
