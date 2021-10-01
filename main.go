@@ -22,7 +22,7 @@ func main() {
 		c.HTML(http.StatusOK, "index.html", nil)
 	})
 
-	/* 설명서 */
+	/* 설명서1 */
 	// router.GET("/explanation", func(c *gin.Context) {
 	// 	c.HTML(http.StatusOK, "description.html", nil)
 	// })
