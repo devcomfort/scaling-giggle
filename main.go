@@ -33,7 +33,7 @@ func main() {
 
 	/* Script */
 	router.GET("/download.js", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "download.js")
+		c.HTML(http.StatusOK, "download.js", nil)
 	})
 
 	router.Run(":" + port)
