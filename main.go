@@ -32,7 +32,7 @@ func main() {
 	})
 
 	/* Script */
-	router.GET("/download.js", func(c *gin.Context) {
+	router.GET("/download", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "download.js", nil)
 	})
 
