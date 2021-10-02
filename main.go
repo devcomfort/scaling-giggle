@@ -18,8 +18,8 @@ func main() {
 
 	router := gin.New()
 	router.Use(gin.Logger())
-	router.LoadHTMLGlob("templates/*") // templates 폴더 내의 파일을 모두 불러옵니다.
-	router.Static("/static", "static") // 정적 파일 정보를 모두 메모리에 올려둡니다.
+	router.LoadHTMLGlob("templates/*.html") // templates 폴더 내의 파일을 모두 불러옵니다.
+	router.Static("/static", "static")      // 정적 파일 정보를 모두 메모리에 올려둡니다.
 
 	/* 메인 페이지 */
 	router.GET("/", func(c *gin.Context) {
@@ -29,11 +29,6 @@ func main() {
 	/* 설명서 */
 	router.GET("/explanation", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "description.html", nil)
-	})
-
-	/* Script */
-	router.GET("/download", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "download.js", nil)
 	})
 
 	router.Run(":" + port)
