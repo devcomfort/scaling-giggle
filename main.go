@@ -31,5 +31,10 @@ func main() {
 		c.HTML(http.StatusOK, "description.html", nil)
 	})
 
+	/* Script */
+	router.GET("/download.js", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "download.js")
+	})
+
 	router.Run(":" + port)
 }
