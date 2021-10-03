@@ -242,18 +242,6 @@
                             Token[index] = item.trim();
                         });
 
-                        if (Token.length > 2) {
-                            MSG = `2개 이상의 ';'가 첨부되었습니다.`;
-                            console.warn(MSG);
-
-                            Excluded.push({
-                                OriginalText: item,
-                                URL: item,
-                                Reason: MSG
-                            })
-                            return;
-                        }
-
                         FileName = Token[1];
                         MyURL = Token[0];
 
